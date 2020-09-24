@@ -1,26 +1,28 @@
-/* Copyright 2018-20 Richard Oliver. Licensed under Apache Licence version 2.0 */
+/* Copyright 2018-20 Richard Oliver. Licensed under Apache Licence version 2.0. */
 package ostrat
 import annotation._, unchecked.uncheckedVariance, reflect.ClassTag, collection.mutable.ArrayBuffer
 
-/** The immutable Array based class for reference types. It Inherits the standard foreach, map, flatMap and fold and their variations' methods from
- *  ArrayLike. */
+/** The immutable Array based class for types without there own specialised [[ArrBase]] collection classes. It Inherits the standard foreach, map,
+ *  flatMap and fold and their variations' methods from ArrayLike. */
 final class Arr[+A](val unsafeArr: Array[A] @uncheckedVariance) extends AnyVal with ArrBase[A]
 { type ThisT = Arr[A] @uncheckedVariance
+  override def typeStr: String = "Arr"
   override def unsafeNew(length: Int): Arr[A] = new Arr(new Array[AnyRef](length).asInstanceOf[Array[A]])
   override def length: Int = unsafeArr.length
   override def apply(index: Int): A = unsafeArr(index)
-  override def toString: String = "Refs" + elemsStr
-  def elemsStr: String =  unsafeArr.toStrsCommaParenth()
+
+  override def fElemStr: A @uncheckedVariance => String = _.toString
   def unsafeSetElem(i: Int, value: A @uncheckedVariance): Unit = unsafeArr(i) = value
   @inline def drop1(implicit ct: ClassTag[A] @uncheckedVariance): Arr[A] = drop(1)
   def offset(value: Int): ArrOff[A] @uncheckedVariance = new ArrOff[A](value)
   def offset0: ArrOff[A @uncheckedVariance] = offset(0)
 
+  /** Copies the backing Array to the operand Array. */
   override def unsafeArrayCopy(operand: Array[A] @uncheckedVariance, offset: Int, copyLength: Int): Unit =
   { unsafeArr.copyToArray(unsafeArr, offset, copyLength); () }
 
   def drop(n: Int)(implicit ct: ClassTag[A] @uncheckedVariance): Arr[A] =
-  { val newArray = new Array[A]((length - 1).min0)
+  { val newArray = new Array[A]((length - 1).atLeast0)
     iUntilForeach(1, length)(i => newArray(i - 1) = unsafeArr(i))
     new Arr(newArray)
   }
@@ -112,18 +114,6 @@ object Arr
 /** The default Immutable Array based collection builder for the Arr[A] class. */
 class AnyBuild[A](implicit ct: ClassTag[A], @unused notA: Not[SpecialT]#L[A] ) extends ArrBuild[A, Arr[A]] with ArrFlatBuild[Arr[A]]
 { type BuffT = AnyBuff[A]
-  override def newArr(length: Int): Arr[A] = new Arr(new Array[A](length))
-  override def arrSet(arr: Arr[A], index: Int, value: A): Unit = arr.unsafeArr(index) = value
-  override def newBuff(length: Int = 4): AnyBuff[A] = new AnyBuff(new ArrayBuffer[A](length))
-  override def buffGrow(buff: AnyBuff[A], value: A): Unit = buff.unsafeBuff.append(value)
-  override def buffGrowArr(buff: AnyBuff[A], arr: Arr[A]): Unit = buff.unsafeBuff.addAll(arr.unsafeArr)
-  override def buffToArr(buff: AnyBuff[A]): Arr[A] = new Arr(buff.unsafeBuff.toArray)
-}
-
-/** The default Immutable Array based collection builder for the Arr[A] class. */
-class AnyBuildAlt[A](ctIn: ClassTag[A]) extends ArrBuild[A, Arr[A]] with ArrFlatBuild[Arr[A]]
-{ type BuffT = AnyBuff[A]
-  implicit val ct: ClassTag[A] = ctIn
   override def newArr(length: Int): Arr[A] = new Arr(new Array[A](length))
   override def arrSet(arr: Arr[A], index: Int, value: A): Unit = arr.unsafeArr(index) = value
   override def newBuff(length: Int = 4): AnyBuff[A] = new AnyBuff(new ArrayBuffer[A](length))

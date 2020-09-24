@@ -46,7 +46,7 @@ package object pGrid
   { def gridForeach(f: (Roord, A) => Unit)(implicit grid: TileGridSimple): Unit = grid.foreach{r => f(r, thisArray(grid.arrIndex(r)))}
   }
 
-  implicit class GridTransAllExtension[T](value: T)(implicit grid: TileGridSimple, ev: Affine[T])
+  implicit class GridTransAllExtension[T](value: T)(implicit grid: TileGridSimple, ev: AffineTrans[T])
   {
     def gridRoordTrans(focus: Roord, scale: Double): T = value.trans(orig => (orig - focus.gridVec2) * scale)
     def gridRoordTrans(yFocus: Int, cFocus: Int, scale: Double): T = value.trans(orig => (orig - grid.roordToVec2(yFocus, cFocus)) * scale)
@@ -55,19 +55,18 @@ package object pGrid
   implicit class GridSlateScaleExtension[T](value: T)(implicit grid: TileGridSimple, evSlate: Slate[T], evScale: Scale[T]) {
     /** Translates Vec2s relative to Grid centre and then scales. */
     def gridScale(scale: Double): T =
-    { val a = evSlate.slateT(value, -grid.cen)
+    { val a = evSlate.slateT(value, - grid.cen)
+      evScale.scaleT(a, scale)
+    }
+    /** Translates Vec2s relative to focus and then scales. */
+    def gridRoordScale(focus: Roord, scale: Double): T =
+    { val a = evSlate.slateT(value, - focus.gridVec2)
       evScale.scaleT(a, scale)
     }
   }
 
   implicit class GridTransSimExtension[T](value: T)(implicit grid: TileGridSimple, ev: TransSim[T])
   {
-    /** Translates Vec2s relative to Grid centre and then scales. */
-    def gridScaleOld(scale: Double): T =
-    { val a = ev.slate(value, -grid.cen)
-      ev.scale(a, scale)
-    }
-
     def gridTrans(offset: Vec2, scale: Double): T =
     { val a = ev.slate(value, -offset - grid.cen)
       ev.scale(a, scale)
@@ -79,18 +78,6 @@ package object pGrid
   { def prepend(y: Int, c: Int, value: A)(implicit grid: TileGrid): Unit = prepend(Roord(y, c), value)
     def prepend(roord: Roord, value: A)(implicit grid: TileGrid): Unit = thisRefs.unsafeArr(grid.arrIndex(roord)) ::= value
     def prepends(value : A, roords: Roord*)(implicit grid: TileGrid): Unit = roords.foreach{ r =>  thisRefs.unsafeArr(grid.arrIndex(r)) ::= value }
-
-    /*def gridHeadsMap[B <: AnyRef, BB <: Arr[B]](f: (Roord, A) => B)(implicit grid: TileGrid, build: ArrBuild[B, BB]): BB =
-    {
-      val buff = build.newBuff()
-      grid.foreach { r => thisRefs(grid.index(r)) match
-      {
-        case h :: _ => build.buffGrow(buff, f(r, h))
-        case _ =>
-      }
-      }
-      build.buffToArr(buff)
-    }*/
   }
 
   val htStepSomes: Arr[HTStep] = Arr(HTStepUR, HTStepRt, HTStepDR, HTStepDL, HTStepLt, HTStepUL)

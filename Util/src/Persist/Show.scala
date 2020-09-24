@@ -1,4 +1,4 @@
-/* Copyright 2018 Richard Oliver. Licensed under Apache Licence version 2.0 */
+/* Copyright 2018-20 Richard Oliver. Licensed under Apache Licence version 2.0. */
 package ostrat
 import pParse._, collection.immutable.ArraySeq
 
@@ -6,8 +6,9 @@ import pParse._, collection.immutable.ArraySeq
  *   to String representation, but the methods to parse Strings back to objects of the type T. However it may often be useful to start with Show
  *   type class and upgrade it later to Persist[T]. */
 trait Show[-T]
-{
+{ /** The RSON type of T. */
   def typeStr: String
+
   /** Provides the standard string representation for the object. */
   def show(obj: T): String
   
@@ -33,8 +34,7 @@ trait Show[-T]
 /* The companion object for the Show type class. Persist extends Show with UnShow. As its very unlikley that anyone would want to create an UnShow
    instance without a Show instance. Many Persist instances are placed inside the Show companion object. However type instances that themselves
    one or more Show type instances as parameters require a specific Show instance. The Persist instance for these types will require corresponding
-   Persist type instances, and these will be placed in the Persist companion object.
- */
+   Persist type instances, and these will be placed in the Persist companion object. */
 object Show //extends ShowInstancesPriority2
 {
   implicit val intPersistImplicit: Persist[Int] = new PersistSimple[Int]("Int") {
@@ -50,7 +50,7 @@ object Show //extends ShowInstancesPriority2
   }
 
   implicit val doublePersistImplicit: Persist[Double] = new PersistSimple[Double]("DFloat")
-  { def show(obj: Double): String = obj.toString
+  { def show(obj: Double): String = obj.str
     override def fromExpr(expr: Expr): EMon[Double] = expr match
     { case DecimalToken(_, i) => Good(i.toDouble)
       case PreOpExpr(op, DecimalToken(_, i)) if op.srcStr == "+" => Good(i.toDouble)

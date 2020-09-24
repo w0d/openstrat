@@ -6,6 +6,7 @@ import geom._, pCanv._, Colour._
 /** A clone of the classic Atoms game */
 case class ReactorGUI (canv: CanvasPlatform) extends CanvasNoPanels("Reactor")
 {
+  var stun_turn_roomname_playername = "stunId.turnId.roomId.playerId"
   val size = 40  //cell size in pixels
   val rows = 8
   val cols = 10
@@ -17,14 +18,14 @@ case class ReactorGUI (canv: CanvasPlatform) extends CanvasNoPanels("Reactor")
   val cellNeighbours = new Array[Array[Int]](80)
   var reactionQueue = Array[Int]()
   def gameBtn(str: String, cmd: MouseButton => Unit) =
-    Rectangle.curvedCornersCentred(str.length.max(2) * 17, 25, 5, -100 vv -100).parentAll(MouseButtonCmd(cmd), White, 3, Black, 25, str)
+    Rect.curvedCornersCentred(str.length.max(2) * 17, 25, 5, -100 vv -100).parentAll(MouseButtonCmd(cmd), White, 3, Black, 25, str)
 
   init()
   
   def init() : Unit =
   { 
     repaints(
-      Rectangle(width, height, 0 vv 0).fill(Colour(0xFF181818)), 
+      Rect.applyOld(width, height, 0 vv 0).fill(Colour(0xFF181818)),
       gameBtn("new | load | save", (mb: MouseButton) => { deb("3") })
     )
 
@@ -32,8 +33,7 @@ case class ReactorGUI (canv: CanvasPlatform) extends CanvasNoPanels("Reactor")
     players = Array(Red, Green, Yellow, Blue)
     currentPlayer = players(0)
     reactionQueue = Array[Int]()
-    for( r <- 0 to rows-1; c <- 0 to cols-1)
-    {
+    ijUntilForeach(0, rows)(0, cols){ (r, c) =>
       val index = c+cols*r
       cellCounts(index) = 0
       cellColors(index) = Black
@@ -44,17 +44,17 @@ case class ReactorGUI (canv: CanvasPlatform) extends CanvasNoPanels("Reactor")
       if (c<(cols-1)) cellNeighbours(index) = (index+1) +: cellNeighbours(index)
       if (r<(rows-1)) cellNeighbours(index) = (index+cols) +: cellNeighbours(index)
     }
-    canv.polyFill(Rectangle.fromBL(size/2, size/2, -size vv -size), currentPlayer)
+    canv.polyFill(Rect.fromBL(size/2, size/2, -size vv -size), currentPlayer)
   }
   def drawBalls(loc:Vec2, color:Colour, count:Int) : Unit =
   {
-    canv.polyFill(Rectangle.fromBL(size-1, size-1, loc), Black)
-    if (count==2||count==4||count==5) canv.circleFill(CircleFill(Circle(size/8, loc+((size/4) vv (size/4))), color))
-    if (count==1||count==3||count==5) canv.circleFill(CircleFill(Circle(size/8, loc+((size/2) vv (size/2))), color))
-    if (count==2||count==4||count==5) canv.circleFill(CircleFill(Circle(size/8, loc+((3*size/4) vv (3*size/4))), color))
-    if (count==3||count==4||count==5) canv.circleFill(CircleFill(Circle(size/8, loc+((3*size/4) vv (size/4))), color))
-    if (count==3||count==4||count==5) canv.circleFill(CircleFill(Circle(size/8, loc+((size/4) vv (3*size/4))), color))
-    if (count>5) canv.polyFill(Rectangle.fromBL(size-1, size-1, loc), Pink)
+    canv.polyFill(Rect.fromBL(size-1, size-1, loc), Black)
+    if (count==2||count==4||count==5) canv.circleFill(Circle(size/8, loc+((size/4) vv (size/4))), color)
+    if (count==1||count==3||count==5) canv.circleFill(Circle(size/8, loc+((size/2) vv (size/2))), color)
+    if (count==2||count==4||count==5) canv.circleFill(Circle(size/8, loc+((3*size/4) vv (3*size/4))), color)
+    if (count==3||count==4||count==5) canv.circleFill(Circle(size/8, loc+((3*size/4) vv (size/4))), color)
+    if (count==3||count==4||count==5) canv.circleFill(Circle(size/8, loc+((size/4) vv (3*size/4))), color)
+    if (count>5) canv.polyFill(Rect.fromBL(size-1, size-1, loc), Pink)
   }
   def processQueue() : Unit = 
   {
@@ -89,7 +89,7 @@ case class ReactorGUI (canv: CanvasPlatform) extends CanvasNoPanels("Reactor")
     var currentPlayerIndex = players.indexOf(currentPlayer) + 1
     if (currentPlayerIndex >= players.length) currentPlayerIndex = 0
     currentPlayer = players(currentPlayerIndex)
-    canv.polyFill(Rectangle.fromBL(size/2, size/2, -size vv -size), currentPlayer)
+    canv.polyFill(Rect.fromBL(size/2, size/2, -size vv -size), currentPlayer)
     canv.textGraphic(turn.toString, 11, -3*size/4 vv -3*size/4, Black)
   }
   def addBallByIndex(index:Int) : Unit = 

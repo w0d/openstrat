@@ -1,4 +1,4 @@
-/* Copyright 2018 Richard Oliver. Licensed under Apache Licence version 2.0 */
+/* Copyright 2018-20 Richard Oliver. Licensed under Apache Licence version 2.0. */
 package ostrat
 package p1783
 import geom._, pEarth._, pCanv._, pStrat._
@@ -10,13 +10,13 @@ case class Y1783GuiOld(canv: CanvasPlatform, scen: NapScen) extends EarthAllGuiO
   scale = 0.99.km   
   focus = 53.17 ll 0.0
 
-  val fHex: OfETile[NTileOld, ESideOldOnly] => GraphicElemFulls = etog =>
+  val fHex: OfETile[NTileOld, ESideOldOnly] => DisplayElems = etog =>
     {
       import etog._         
       val colour: Colour = tile.colour
       val poly = vertDispVecs.fillActive(colour, tile)       
 
-      val textU: GraphicElemFulls = etog.ifScaleCObjs(68, tile.lunits match
+      val textU: DisplayElems = etog.ifScaleCObjs(68, tile.lunits match
         { case ArrHead(head) if tScale > 68 => Arr(UnitCounters.infantry(30, head, head.colour,tile.colour).slate(cen))
           case _ =>
           { val strs: Arr[String] = Arr(yxStr, cenLL.degStr)
@@ -26,7 +26,7 @@ case class Y1783GuiOld(canv: CanvasPlatform, scen: NapScen) extends EarthAllGuiO
         Arr(poly) ++ textU
      }
    
-   def fSide: OfESide[NTileOld, ESideOldOnly] => GraphicElemFulls = ofs =>
+   def fSide: OfESide[NTileOld, ESideOldOnly] => DisplayElems = ofs =>
      { import ofs._
        val line = ifScaleCObjs(60, side.terr match
          { case SideNone => ifTiles((t1, t2) => t1.colour == t2.colour, (t1, _) => vertDispLine.draw(1, t1.colour.contrastBW))
@@ -35,9 +35,9 @@ case class Y1783GuiOld(canv: CanvasPlatform, scen: NapScen) extends EarthAllGuiO
        line
      } 
       
-  def ls: GraphicElemFulls =
-  { val gs: GraphicElemFulls = scen.grids.flatMap(_.eGraphicElems(this, fHex, fSide))
-    val as: GraphicElemFulls = scen.tops.flatMap(a => a.disp2(this))
+  def ls: DisplayElems =
+  { val gs: DisplayElems = scen.grids.flatMap(_.eGraphicElems(this, fHex, fSide))
+    val as: DisplayElems = scen.tops.flatMap(a => a.disp2(this))
     gs ++ as
   }
  
@@ -52,7 +52,7 @@ case class Y1783GuiOld(canv: CanvasPlatform, scen: NapScen) extends EarthAllGuiO
        val newCorps = c.copy (newTile)
        newTile.lunits +:= newCorps
        selected = List(newCorps)
-       repaintMap
+       repaintMap()
       }
       case (List(c: Corps), clickList) => //deb(clickList.map(_.getClass.toString).toString)
       case _ =>
@@ -61,6 +61,6 @@ case class Y1783GuiOld(canv: CanvasPlatform, scen: NapScen) extends EarthAllGuiO
   }
 
   eTop()   
-  loadView   
-  repaintMap   
+  loadView()
+  repaintMap()
 }

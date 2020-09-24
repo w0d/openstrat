@@ -1,4 +1,4 @@
-/* Copyright 2018 Richard Oliver. Licensed under Apache Licence version 2.0 */
+/* Copyright 2018-20 Richard Oliver. Licensed under Apache Licence version 2.0. */
 package ostrat
 package p305
 import geom._, pCanv._, pEarth._
@@ -27,18 +27,18 @@ case class BC305Gui(canv: CanvasPlatform, scen: BcScen) extends EarthGuiOld("BC 
 //   def upCmd: MouseButton => Unit = (mb: MouseButton) =>
 //      { lat = Latitude((lat.radians + distDelta(mb)).max(0)); updateView() } 
          
-  val fHex: OfETile[BcTileOld, ESideOldOnly] => GraphicElemFulls = etog =>
+  val fHex: OfETile[BcTileOld, ESideOldOnly] => DisplayElems = etog =>
     { import etog._         
       val colour: Colour = tile.colour
       val poly = vertDispVecs.fillActive(colour, tile)
       
-      val tileText: GraphicElemFulls = ifScaleCObjs(68,
+      val tileText: DisplayElems = ifScaleCObjs(68,
         { val strs: Arr[String] = Arr(yxStr, cenLL.degStr)
           TextGraphic.lines(strs, 10, cen, colour.contrastBW)//.toArraySeq
         })
       poly +: tileText
       }
-   def fSide: OfESide[BcTileOld, ESideOldOnly] => GraphicElemFulls = ofs => {
+   def fSide: OfESide[BcTileOld, ESideOldOnly] => DisplayElems = ofs => {
       import ofs._
       ifScaleCObjs(60, side.terr match
         {
@@ -47,13 +47,13 @@ case class BC305Gui(canv: CanvasPlatform, scen: BcScen) extends EarthGuiOld("BC 
         })
    }   
          
-   def ls: GraphicElemFulls =
-   { val gs: GraphicElemFulls = scen.grids.flatMap(_.eGraphicElems(this, fHex, fSide))
-     val as: GraphicElemFulls = scen.tops.flatMap(a => a.disp2(this))
+   def ls: DisplayElems =
+   { val gs: DisplayElems = scen.grids.flatMap(_.eGraphicElems(this, fHex, fSide))
+     val as: DisplayElems = scen.tops.flatMap(a => a.disp2(this))
      gs ++ as
    }
    
    eTop()
-   loadView 
-   repaintMap
+   loadView()
+   repaintMap()
 }

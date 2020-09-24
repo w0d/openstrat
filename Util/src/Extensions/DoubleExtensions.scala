@@ -1,8 +1,11 @@
-/* Copyright 2018 Richard Oliver. Licensed under Apache Licence version 2.0 */
+/* Copyright 2018-20 Richard Oliver. Licensed under Apache Licence version 2.0. */
 package ostrat
+import math.Pi
 
+/** Extension class for Double. This is created as a seperate class to keep down the size of the package object. */
 class DoubleImplicit(val thisDouble: Double) extends AnyVal
 {
+  /** Alternative remainder operator that gives positive remainders for negative numbers. So -1 %% 3 == 2. -7 %% 4 == 1. */
   def %%(divisor: Double): Double =
   { val r = thisDouble % divisor
     ife(r < 0, divisor + r, r)
@@ -12,6 +15,15 @@ class DoubleImplicit(val thisDouble: Double) extends AnyVal
   def =~ (other: Double): Boolean =  ((thisDouble - other).abs/(thisDouble.abs.max(other.abs).max(1))) * precision  < 1
   def squared: Double = thisDouble * thisDouble
   def cubed: Double = thisDouble * thisDouble * thisDouble
+  
+  /** Returns the square root of this [[Double]]. */
+  def sqrt: Double = math.sqrt(thisDouble)
+
+  def str: String = thisDouble.toLong match
+  { case l if l == thisDouble => l.toString
+    case _ => thisDouble.toString
+  }
+
   def str1: String = f"$thisDouble%1.1f"
   def str2: String = f"$thisDouble%1.2f"
   def str3: String = f"$thisDouble%1.3f"
@@ -28,7 +40,7 @@ class DoubleImplicit(val thisDouble: Double) extends AnyVal
     }
     acc.reverse
   }
-   
+
   def subMin(operand: Double, minValue: Double): Double = (thisDouble - operand).max(minValue)
   def ifNeg[A](vNeg: => A, vPos: => A): A = if (thisDouble < 0) vNeg else vPos
   
@@ -41,23 +53,35 @@ class DoubleImplicit(val thisDouble: Double) extends AnyVal
   /** if this outside the range minus to plus operand */
   def <> (operand: Double): Boolean = thisDouble > -operand && thisDouble < operand
   def toRoundInt: Int = ife(thisDouble > 0, (thisDouble + 0.5).toInt, (thisDouble - 0.5).toInt)
-  import math._
-  @inline def radiansToDegrees: Double = thisDouble * 180.0 / Pi
-  @inline def degreesToRadians: Double = thisDouble * Pi / 180.0   
-  @inline def toWholeDegsStr: String = round(radiansToDegrees).toString
+
+  /** Takes this Double as a value in arc degrees and converts it to a value of radians. */
+  @inline def degsToRadians: Double = thisDouble * Pi / 180.0
+
+  /** Takes this Double as a value in arc degrees and converts it to a value of arc seconds. */
+  @inline def degsToSecs: Double = thisDouble * 3600
+
+  /** Takes this Double as a value in radians and converts it to a value of arc degrees. */
+  @inline def radiansToDegs: Double = thisDouble * 180.0 / Pi
+
+  /** Takes this Double as a value in radians and converts it to a value of arc seconds. */
+  @inline def radiansToSecs: Double = thisDouble * 3600 * 180 / Pi
+
+  /** Takes this Double as a value in arc seconds and converts it to a value of radians. */
+  @inline def secsToRadians = thisDouble * Pi / 180.0 / 3600.0
+
+  /** Takes this Double as a value in arc deconds and converts it to a value of arc degrees. */
+  @inline def secsToDegs = thisDouble / 3600.0
+
+  /** Probably good to get rid of this. */
+  @inline def toWholeDegsStr: String = math.round(radiansToDegs).toString
   def to2Ints: (Int, Int) =
-  { val lg = java.lang.Double.doubleToRawLongBits(thisDouble)   
+  { val lg = java.lang.Double.doubleToRawLongBits(thisDouble)
     ((lg >>> 32).toInt, (lg & 0xFFFFFFFFL).toInt)
   }
-   
+
   def toDegsMins: (Int, Int) =
-  { val sx: Int = (radiansToDegrees * 60).toInt
+  { val sx: Int = (radiansToDegs * 60).toInt
     ((sx / 60), sx % 60)
-  }
-  
-  def toDegsMinsStr: String =
-  { val (degs, mins) = toDegsMins
-    degs.toString + "°" + mins.ifZero("", mins.toString)
   }
   
   @inline def sin: Double = math.sin(thisDouble)

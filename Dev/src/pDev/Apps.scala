@@ -35,11 +35,15 @@ object Apps
     ("Z2", (pZug.ZugGui(_, pZug.Zug2), "JavaFx Zugfuhrer Z2 Britain")),
     ("Z3", (pZug.ZugGui(_, pZug.Zug3), "JavaFx Zugfuhrer Z3 France")),
 
-    ("A1", (learn.LessonA1(_), "JavaFx Demonstration Canvas 1")), //Static Graphics
-    ("A2", (learn.LessonA2(_), "JavaFx Demonstration Canvas 2")),
-    ("A3", (learn.LessonA3(_), "JavaFx Demonstration Canvas 3")),
-    ("A4", (learn.LessonA4(_), "JavaFx Demonstration Canvas 4")),
-    ("A5", (learn.LessonA5(_), "JavaFx Demonstration Canvas 5")),
+    ("HW", (learn.HelloWorld(_), "JavaFx Demonstration Canvas Hello World")), //Static Graphics
+    ("A1a", (learn.LsA1a(_), "JavaFx Demonstration Canvas A1")),
+    ("A1b", (learn.LsA1b(_), "JavaFx Demonstration Canvas 1b")),
+    ("A1s", (learn.LsA1Summary(_), "JavaFx Demonstration Canvas A1 Summary")),
+    ("A2", (learn.LsA2(_), "JavaFx Demonstration Canvas 2")),
+    ("A3a", (learn.LsA3a(_), "JavaFx Demonstration Canvas 3a")),
+    ("A3", (learn.LsA3(_), "JavaFx Demonstration Canvas 3")),
+    ("A4", (learn.LsA4(_), "JavaFx Demonstration Canvas 4")),
+    ("A5", (learn.LsA5(_), "JavaFx Demonstration Canvas 5")),
     ("A6", (learn.LessonA6(_), "JavaFx Demonstration Canvas 6")),
     ("A7", (learn.LessonA7(_), "JavaFx Demonstration Canvas 7")),
     ("A8", (learn.LessonA8(_), "JavaFx Demonstration Canvas 8")),

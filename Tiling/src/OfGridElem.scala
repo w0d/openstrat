@@ -1,11 +1,11 @@
-/* Copyright 2018 Richard Oliver. Licensed under Apache Licence version 2.0 */
+/* Copyright 2018-20 Richard Oliver. Licensed under Apache Licence version 2.0. */
 package ostrat
 package pGrid
 import geom._, reflect.ClassTag
 
-/** Although including the cood could be considered to break the principle of encapsulation, A tile should not need to know where it is in a grid. I
- *   think it is necessary. Although the cood is determined by its position in the array there is just no good way for this data to be recovered by
- *    the Grid for random access. I think also it might be better to change to a var */
+/** To be removed. Although including the cood could be considered to break the principle of encapsulation, A tile should not need to know where it is
+ *  in a grid. I think it is necessary. Although the cood is determined by its position in the array there is just no good way for this data to be
+ *  recovered by the Grid for random access. I think also it might be better to change to a var. */
 trait OfGridElem[TileT <: TileOld, SideT <: TileSideOld, GridT <: TileGridOld[TileT, SideT]]
 { def grid: GridT
   def cood: Cood   
@@ -18,13 +18,13 @@ trait OfGridElem[TileT <: TileOld, SideT <: TileSideOld, GridT <: TileGridOld[Ti
   /** The number of pixels per tile, centre to centre */
   def tScale: Double = psc * grid.xStep
 
-  def ifScaleCObjs(ifScale: Double, cObjs: => GraphicElemFulls): GraphicElemFulls = if (tScale > ifScale) cObjs else Arr()
+  def ifScaleCObjs(ifScale: Double, cObjs: => DisplayElems): DisplayElems = if (tScale > ifScale) cObjs else Arr()
 
-  def ifScaleCObj(ifScale: Double, cObj: CanvO *): GraphicElemFulls = if (tScale > ifScale) cObj.toArr else Arr()
+  def ifScaleCObj(ifScale: Double, cObj: GraphicElem *): DisplayElems = if (tScale > ifScale) cObj.toArr else Arr()
 
-  def ifScaleIfCObj(ifScale: Double, b: Boolean, cObjs: CanvO *): GraphicElemFulls = if (tScale > ifScale && b) cObjs.toArr else Arr()
+  def ifScaleIfCObj(ifScale: Double, b: Boolean, cObjs: GraphicElem *): DisplayElems = if (tScale > ifScale && b) cObjs.toArr else Arr()
 
-  def ifScaleOptObjs[A >: Null <: AnyRef](ifScale: Double, eA: OptRef[A])(f: A => GraphicElemFulls): GraphicElemFulls =
+  def ifScaleOptObjs[A >: Null <: AnyRef](ifScale: Double, eA: OptRef[A])(f: A => DisplayElems): DisplayElems =
     if (tScale < ifScale) Arr() else eA.fld(Arr(), f(_))
 }
 
@@ -33,16 +33,16 @@ trait OfTile[TileT <: TileOld, SideT <: TileSideOld, GridT <: TileGridOld[TileT,
 { def tile: TileT    
   final def cood: Cood = tile.cood   
   def vertCoods: Coods = grid.vertCoodsOfTile(cood)
-  def vertDispVecs: PolygonClass
+  def vertDispVecs: PolygonGen
   def cen: Vec2
-  def ownSideLines: Line2s
+  def ownSideLines: LineSegs
 }
 
 trait OfSide[TileT <: TileOld, SideT <: TileSideOld, GridT <: TileGridOld[TileT, SideT]] extends OfGridElem[TileT, SideT, GridT]
 { def side: SideT    
   final def cood: Cood = side.cood   
   def coodsLine: CoodLine = grid.vertCoodLineOfSide(cood)
-  def vertDispLine: Line2 = coodsLine.toLine2(coodToDispVec2)
+  def vertDispLine: LineSeg = coodsLine.toLine2(coodToDispVec2)
 
   def ifTiles[A <: AnyRef](f: (TileT, TileT) => Boolean, fA: (TileT, TileT) => A)(implicit ct: ClassTag[A]): Arr[A] =
     grid.optSidesTiles(cood) match

@@ -2,129 +2,95 @@
 import mill._, scalalib._, scalajslib._, scalanativelib._, publish._
 
 trait Common extends ScalaModule
-{ def version = "0.0.7snap"  
-  def scalacOptions = Seq("-feature", "-language:higherKinds,implicitConversions", "-deprecation", "-target:jvm-1.8", "-Ywarn-value-discard", "-encoding", "UTF-8", "-unchecked", "-Xlint")
+{ def version = "0.2.1snap"
+def scalaVersion = "2.13.3"
+  def scalacOptions = Seq("-feature", "-language:higherKinds,implicitConversions", "-deprecation", "-Ywarn-value-discard", "-encoding", "UTF-8", "-unchecked", "-Xlint")
 }
 
-trait CommonStd extends Common
-{ def scalaVersion = "2.13.2"
-}
-
-trait CommonStdJs extends ScalaJSModule with CommonStd
-{ def scalaJSVersion = "1.1.0" 
-}
-
-trait PlatformsModule extends ScalaModule with CommonStd
-{ outer =>  
-  
-  def sources = T.sources(millSourcePath / 'src, millSourcePath / 'jvm / 'src)
-
-  trait InnerJs extends CommonStdJs
-  { def sources = T.sources(outer.millSourcePath / 'src, millSourcePath / 'src)	  
-	  def ivyDeps = outer.ivyDeps() ++  Agg(ivy"org.scala-js::scalajs-dom_sjs1.0:1.0.0")
-  }
-
-  trait InnerNative extends ScalaNativeModule with CommonStd
-  { def scalaVersion = "2.11.12"
-    def scalaNativeVersion = "0.3.8"  
-	  def sources = T.sources(outer.millSourcePath / 'src, outer.millSourcePath / 'srcNat)
-	  def ivyDeps = outer.ivyDeps() //++ ivyNat()	 
-  }
+trait CommonJvm extends Common
+{ 
+  def sources = T.sources(millSourcePath / 'src, millSourcePath / 'srcJvm, millSourcePath / 'srcExs, millSourcePath / 'srcExsJvm)
 
   trait InnerTests extends Tests
-  { def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.2")
+  { def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.5")
     def testFrameworks = Seq("utest.runner.Framework") 
     def sources = T.sources(millSourcePath / 'src)
     def resources = T.sources(millSourcePath / 'res)
   }
-
-  trait InnerLearn extends ScalaModule with CommonStd
-  {
-  	def sources = T.sources(outer.millSourcePath / 'src, millSourcePath / 'src)
-  }
 }
 
-object Util extends PlatformsModule
-{
-  object MacrosJvm extends CommonStd with PublishModule
-  { def ivyDeps = Agg(ivy"${scalaOrganization()}:scala-reflect:${scalaVersion()}")
-    def sources = T.sources(Util.millSourcePath / 'Macros / 'src)
-    def publishVersion = "0.0.7snap"
-    def pomSettings = PomSettings(
-      description = "openstrat",
-      organization = "com.richstrat",
-      url = "https://github.com/richtype/openstrat",
-      licenses = Seq(License.MIT),
-      versionControl = VersionControl.github("richtype", "openstrat"),
-      developers = Seq(
-        Developer("richtype", "Rich Oliver","https://github.com/richtype")
-      )
-    )
-  }
+trait CommonJs extends ScalaJSModule with Common
+{ def scalaJSVersion = "1.1.0"
+  //def sources = T.sources(outer.millSourcePath / 'src, outer.millSourcePath / 'srcJs)
+  def ivyDeps = Agg(ivy"org.scala-js::scalajs-dom_sjs1:1.1.0")
+}
 
-  object MacrosJs extends CommonStdJs
+object UtilMacros extends CommonJvm// with PublishModule
+{ def ivyDeps = Agg(ivy"${scalaOrganization()}:scala-reflect:${scalaVersion()}")
+  def sources = T.sources(Util.millSourcePath / 'srcMacros)
+}
 
-  def moduleDeps = Seq(MacrosJvm)
+object UtilMacrosJs extends CommonJs
+{ def ivyDeps = Agg(ivy"${scalaOrganization()}:scala-reflect:${scalaVersion()}")
+  def sources = T.sources(Util.millSourcePath / 'srcMacros)
+}
+
+object Util extends CommonJvm
+{ def moduleDeps = Seq(UtilMacros)
+  def mainClass = Some("ostrat.WebPage1")
+  object test extends InnerTests  
+}
+
+object UtilJs extends CommonJs
+{ def moduleDeps = Seq(UtilMacrosJs)
+  def sources = T.sources(Util.millSourcePath / 'src, Util.millSourcePath / 'srcExs)
+}
+
+object Graphics extends CommonJvm
+{ def moduleDeps = Seq(Util)
+  //def ivyDeps = Agg(ivy"org.openjfx:javafx:14")
+  object test extends InnerTests  
+}
+
+object GraphicsJs extends CommonJs
+{ def moduleDeps = Seq(UtilJs)
+  def sources = T.sources(Graphics.millSourcePath / 'src, Graphics.millSourcePath / 'srcJs, Graphics.millSourcePath / 'srcExs)
+}
+
+object Tiling extends CommonJvm
+{ def moduleDeps = Seq(Graphics)  
   object test extends InnerTests
-  
-  object js extends InnerJs
-  { def moduleDeps = Seq(MacrosJs)
-  }
-
-  object examples extends InnerLearn
-  {	def moduleDeps = Seq(Util)
-  }
-
-  object Nat extends InnerNative  
+  def sources = T.sources(Tiling.millSourcePath / 'src)
 }
 
-object Graphic extends PlatformsModule
-{ def moduleDeps = Seq(Util)  
-  object test extends InnerTests
-  
-  object js extends InnerJs {  def moduleDeps = Seq(Util.js)  }
-  object Nat extends InnerNative
+object TilingJs extends CommonJs
+ {  def moduleDeps = Seq(GraphicsJs)
+def sources = T.sources(Tiling.millSourcePath / 'src, Tiling.millSourcePath / 'srcJs, Tiling.millSourcePath / 'srcExs)
+ }
 
-  object examples extends InnerLearn
-  { def moduleDeps = Seq(Graphic)
-  }
-}
-
-object Tiling extends PlatformsModule
-{ def moduleDeps = Seq(Graphic)  
-  object test extends InnerTests
-  
-  object js extends InnerJs {  def moduleDeps = Seq(Graphic.js)  }
-  object Nat extends InnerNative
-
-  object examples extends InnerLearn
-  { def moduleDeps = Seq(Tiling)
-  }
-}
-
-object Strat extends PlatformsModule
+object World extends CommonJvm
 { def moduleDeps = Seq(Tiling)  
 
   object test extends InnerTests
-      
-  object js extends InnerJs { def moduleDeps = Seq(Tiling.js) }
-  object Nat extends InnerNative
 }
 
-object Dev extends PlatformsModule
-{ def moduleDeps = Seq(Strat)
+object WorldJs extends CommonJs
+{ def moduleDeps = Seq(TilingJs)
+  def sources = T.sources(World.millSourcePath / 'src, World.millSourcePath / 'srcJs, World.millSourcePath / 'srcExs)
+}
+
+object Dev extends CommonJvm
+{ def moduleDeps = Seq(World)
   def mainClass = Some("ostrat.pFx.DevApp")
-  def sources = T.sources(millSourcePath / 'src, millSourcePath / 'jvm / 'src, Graphic.millSourcePath / 'learn / 'src, Strat.millSourcePath / 'learn / 'src)
-  def resources = T.sources(millSourcePath / 'User)
-  //def ivyDeps = Agg(ivy"org.openjfx:javafx:13.0.2")
-
-  object js extends InnerJs
-  { def moduleDeps = Seq(Strat.js)
-    def sources = T.sources(millSourcePath / 'src, Dev.millSourcePath / 'srcLearn)
-  } 
+  def sources = T.sources(millSourcePath / 'src, millSourcePath / 'srcJvm)
+  def resources = T.sources(millSourcePath / 'User)  
 }
 
-def run() = Dev.runBackground()
+object DevJs extends CommonJs
+{ def moduleDeps = Seq(WorldJs)
+  def sources = T.sources(Dev.millSourcePath / 'src, Dev.millSourcePath / 'srcJs)
+} 
+//def run() = Dev.runBackground()
 def test = Util.test
-def jsfast = Dev.js.fastOpt
-def jsfull = Dev.js.fullOpt
+def jsfast = DevJs.fastOpt
+def jsfull = DevJs.fullOpt

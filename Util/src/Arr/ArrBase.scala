@@ -1,3 +1,4 @@
+/* Copyright 2018-20 Richard Oliver. Licensed under Apache Licence version 2.0. */
 package ostrat
 import annotation.unchecked.uncheckedVariance
 
@@ -5,6 +6,7 @@ import annotation.unchecked.uncheckedVariance
  *  A lot of the time this is a compile time wrapper with no boxing run cost. */
 trait ArrBase[+A] extends Any with ArrayLike[A]
 { type ThisT <: ArrBase[A]
+  def typeStr: String
   //def unsafeNew(length: Int): ThisT
   def unsafeNew(length: Int): ThisT
   def unsafeSetElem(i: Int, value: A @uncheckedVariance): Unit
@@ -12,8 +14,13 @@ trait ArrBase[+A] extends Any with ArrayLike[A]
   def unsafeSetHead(value: A @uncheckedVariance): Unit = unsafeSetElem(0, value)
   def unsafeSetLast(value: A @uncheckedVariance): Unit = unsafeSetElem(length -1, value)
   def unsafeArrayCopy(operand: Array[A] @uncheckedVariance, offset: Int, copyLength: Int ): Unit = ???
-  def unsafeSetElemSeq(index: Int, elems: Iterable[A] @uncheckedVariance) = elems.iForeach((a, i) => unsafeSetElem(i, a), index)
+  def unsafeSetElemSeq(index: Int, elems: Iterable[A] @uncheckedVariance): Unit = elems.iForeach((a, i) => unsafeSetElem(i, a), index)
+  def fElemStr: A @uncheckedVariance => String
 
+  /** The element [[String]] allows the composition of toString for the whole collection. The syntax of the output will be reworked. */
+  final def elemsStr: String = map(fElemStr).mkString("; ").enParenth
+
+  final override def toString: String = typeStr + elemsStr
   def removeFirst(f: A => Boolean): ThisT = indexWhere(f) match
   { case -1 => returnThis
     case n =>
@@ -70,7 +77,7 @@ trait ArrBase[+A] extends Any with ArrayLike[A]
   {
     var count = 0
     var res: Option[A] = None
-    while (count < length & res == None)
+    while (count < length & res.isEmpty)
     {
       val el = apply(count)
       if (f(el)) res = Some(el)

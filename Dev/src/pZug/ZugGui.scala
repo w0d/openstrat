@@ -1,7 +1,9 @@
+/* Copyright 2018-20 Richard Oliver. Licensed under Apache Licence version 2.0. */
 package ostrat
 package pZug
 import pCanv._, pGrid._, geom._, Colour._, pStrat._
 
+/** Uses the new simpler Gui for Grids. */
 case class ZugGui(canv: CanvasPlatform, scen: ZugScen) extends CmdBarGui("ZugFuhrer Gui")
 {
   implicit val grid = scen.grid
@@ -15,10 +17,10 @@ case class ZugGui(canv: CanvasPlatform, scen: ZugScen) extends CmdBarGui("ZugFuh
 
   def lunits = scen.lunits.gridHeadsFlatMap{ (roord, squad) =>
     val uc = UnitCounters.infantry(0.6, squad, squad.colour, terrs(roord).colour).slate(roord.gridVec2)
-    val action: GraphicElemFulls = squad.action match
+    val action: DisplayElems = squad.action match
     {
       case Move(rs) =>
-      { rs.foldWithPrevious[GraphicElemFulls](roord, Arr()){ (acc, prevCood, nextCood) =>
+      { rs.foldWithPrevious[DisplayElems](roord, Arr()){ (acc, prevCood, nextCood) =>
           val sideCood = (prevCood + nextCood) / 2
           val l1 = RoordLine(prevCood, sideCood).gridLine2.draw(2, Black)
           val l2 = RoordLine(sideCood, nextCood).gridLine2.draw(2, Black)
@@ -65,6 +67,6 @@ case class ZugGui(canv: CanvasPlatform, scen: ZugScen) extends CmdBarGui("ZugFuh
   var statusText = "Welcome to ZugFuhrer"
   def thisTop(): Unit = reTop(Arr(status))
   thisTop()
-  def frame = (tiles ++ sides ++ lunits).gridScaleOld(scale)
+  def frame = (tiles ++ sides ++ lunits).gridScale(scale)
   mainRepaint(frame)
 }

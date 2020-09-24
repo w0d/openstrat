@@ -1,11 +1,14 @@
+/* Copyright 2018-20 Richard Oliver. Licensed under Apache Licence version 2.0. */
 package ostrat
 import Colour._, collection.mutable.ArrayBuffer
 
-final class Colours(val array: Array[Int]) extends AnyVal with ArrProdInt1[Colour]
+/** Specialist Array[Int] based class for [[Colour]]s. */
+final class Colours(val arrayUnsafe: Array[Int]) extends AnyVal with ArrProdInt1[Colour]
 { type ThisT = Colours
   override def unsafeFromArray(array: Array[Int]): Colours = new Colours(array)
   override def typeStr: String = "Colours"
   final override def newElem(intValue: Int): Colour = Colour(intValue)
+  override def fElemStr: Colour => String = _.str
 }
 
 object Colours

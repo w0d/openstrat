@@ -1,4 +1,4 @@
-/* Copyright 2018 Richard Oliver. Licensed under Apache Licence version 2.0 */
+/* Copyright 2018-20 Richard Oliver. Licensed under Apache Licence version 2.0. */
 package ostrat
 
 /** Extension methods for String. Brought into scope by the stringToImplicit method in the package object. */
@@ -25,7 +25,6 @@ class StringImplicit(val thisString: String) extends AnyVal //extends PersistStr
       case sts => ev.fromStatements(sts)
     })*/
 
-
   def asInt: EMon[Int] = asType[Int]
 
   def findIntArray: EMon[Array[Int]] = thisString.parseStatements.flatMap(_.findIntArray)
@@ -39,36 +38,51 @@ class StringImplicit(val thisString: String) extends AnyVal //extends PersistStr
   def findBooleanSett(settingStr: String): EMon[Boolean] = thisString.parseStatements.flatMap(_.findBooleanSett(settingStr))
   def findBooleanSettElse(settingStr: String, elseValue: Boolean): Boolean = findBooleanSett(settingStr).getElse(elseValue)
   
- // def - (other: String): String = thisString + other
-  /** Concatenates a space and then the other String */
+  /** Concatenates a space and then the other String. */
   def -- (other: String): String = thisString + " " + other
-  /** appends a newline special character to this String */
-  def nl: String = thisString + "\n"
-  /** Concatenates a newline special character followed by spaces to this string */
-  def nl(indent: Int): String = thisString + "\n" + indent.spaces
+  
+  /** Concaternates a newline character and then the other [String]]. */
+  def --- (other: String): String = thisString + "\n" + other
+
+  /** Concaternates 2 newline characters and then the other [String]]. */
+  def ---- (other: String): String = thisString + "\n\n" + other
+  
+  /** Concatenates a newline special character followed by spaces to this string. */
+  def nli(indent: Int): String = thisString + "\n" + indent.spaces  
+  
   /** prepends a newline special character and spaces to this string */
   def preNl(indent: Int): String = thisString + "\n" + indent.spaces
+  
   /** Prepends a newline special character to this String */
   def preNl: String = "\n" + thisString
+  
   /** Prepends 2 spaces to string */   
   def ind2: String = "  " + thisString
+  
   /** Prepends 4 spaces to string */
   def ind4: String = "    " + thisString
+  
   /** Concatenates a '/' character and then the other String. Useful for constructing directory/ folder paths on the Web, Linux and Unix */      
-  def / (other: String): String = thisString + "/" + other
-  def :- (other: String): String = thisString + ": " + other 
+  def -/-(other: String): String = thisString + "/" + other
+  
+  def -:-(other: String): String = thisString + ": " + other  
   def optAppend (optionOther: Option[String]): String = optionOther.fold(thisString)(string2 => thisString + " " + string2)
   def enquote: String = "\"" + thisString + "\""
   def enquote1: String = "'" + thisString + "'"
   def addEnqu(s2: String): String = thisString + s2.enquote
+  
   /** encloses string in parentheses */
   def enParenth: String = "(" + thisString + ")"
+  
   /** encloses string in Square brackets */
   def enSquare: String = "[" + thisString + "]"
+  
   /** encloses string in Curly brackets */
-  def enCurly: String = "{" + thisString + "}"      
+  def enCurly: String = "{" + thisString + "}" 
+  
   def words: Array[String] = thisString.split("\\s+")
   def toLowerWords: Array[String] = thisString.toLowerCase.words
+  
   def remove2ndDot: String =
   { val (s1, s2) = thisString.span(_ != '.')         
     val (s2a, s2b) = s2.drop(1).span(_ != '.')
@@ -101,7 +115,7 @@ class StringImplicit(val thisString: String) extends AnyVal //extends PersistStr
     case _ => "a " + thisString
   }
 
-  def lengthFix(newLenIn: Int = 3, packChar: Char = ' '): String =
+  def lengthFix(newLenIn: Int = 3, packChar: Char = ' '): String = 
   { val newLen = newLenIn.min(1).max(9)
     (newLen - thisString.length) match {
       case l if l < 0 => thisString.take(newLen)
@@ -110,6 +124,10 @@ class StringImplicit(val thisString: String) extends AnyVal //extends PersistStr
       case l => packChar.timesString(l / 2) + thisString + packChar.timesString(l / 2 + 1)
     }
   }
-
+  
+  /** Converts this String to an immutable Array based collection of [[Char]]s. */
   def toChars: Chars = new Chars(thisString.toCharArray)
+  
+  /** Replaces the reserved HTML characters with their corresponding entities, in order to display XML code as text. Eg '>' is replaced by "&gt;". */
+  def htmlReservedSubstitute: String = toChars.foldLeft(""){ (acc, el) => acc + el.htmlReservedSubstituion }
 }

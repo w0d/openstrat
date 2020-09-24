@@ -1,4 +1,4 @@
-/* Copyright 2018 Richard Oliver. Licensed under Apache Licence version 2.0 */
+/* Copyright 2018-20 Richard Oliver. Licensed under Apache Licence version 2.0. */
 package ostrat
 package pWW2
 import geom._, pEarth._, pCanv._, pStrat._
@@ -9,13 +9,13 @@ case class WWIIGuiOld(canv: CanvasPlatform, scen: WWIIScen) extends EarthAllGuiO
   focusUp = true
   override def saveNamePrefix = "WW2"
 
-  val fHex: OfETile[W2TileOld, W2SideOld] => GraphicElemFulls = etog =>
+  val fHex: OfETile[W2TileOld, W2SideOld] => DisplayElems = etog =>
     {
       import etog._         
       val colour: Colour = tile.colour
       val poly = etog.vertDispVecs.fillActive(colour, tile)
       //val sides = etog.ifScaleCObjs(60, ownSideLines.map(line => LineDraw(line, 1, colour.contrastBW)))
-      val textOrUnit: GraphicElemFulls = ifScaleCObjs(68, tile.lunits match
+      val textOrUnit: DisplayElems = ifScaleCObjs(68, tile.lunits match
         { case s if tScale > 68 & s.nonEmpty => Arr(UnitCounters.infantry(30, s.head, s.head.colour,tile.colour).slate(cen))
           case _ =>
           { val strs: Arr[String] = Arr(yxStr, cenLL.degStr)
@@ -26,7 +26,7 @@ case class WWIIGuiOld(canv: CanvasPlatform, scen: WWIIScen) extends EarthAllGuiO
       Arr(poly) ++ textOrUnit
     }
     
-  def fSide: OfESide[W2TileOld, W2SideOld] => GraphicElemFulls = ofs =>
+  def fSide: OfESide[W2TileOld, W2SideOld] => DisplayElems = ofs =>
     {
       import ofs._
       ifScaleCObjs(60, side.terr match
@@ -38,9 +38,9 @@ case class WWIIGuiOld(canv: CanvasPlatform, scen: WWIIScen) extends EarthAllGuiO
    
   //def dSides: GraphicElems = ofSidesDisplayFold(fSide)//(OfHexSideReg.implicitBuilder(_, _, _))
       
-  def ls: GraphicElemFulls =
-  { val gs: GraphicElemFulls = scen.grids.flatMap(_.eGraphicElems(this, fHex, fSide))
-    val as: GraphicElemFulls = scen.tops.flatMap(a => a.disp2(this))
+  def ls: DisplayElems =
+  { val gs: DisplayElems = scen.grids.flatMap(_.eGraphicElems(this, fHex, fSide))
+    val as: DisplayElems = scen.tops.flatMap(a => a.disp2(this))
     as ++ gs
   }   
   
@@ -58,17 +58,16 @@ case class WWIIGuiOld(canv: CanvasPlatform, scen: WWIIScen) extends EarthAllGuiO
           val newArmy = army.copy(newTile)
           newTile.lunits +-= newArmy
           selected = List(newArmy)
-          repaintMap
+          repaintMap()
         }
         case (List(army: Army), as) => debvar(as.length)
         case _ =>
       }
 
-      case mb => deb(mb.toString) 
-      case _ =>
+      case mb => deb(mb.toString)
     }
   scale = 1.08.km
   eTop()
-  loadView
-  repaintMap
+  loadView()
+  repaintMap()
 }
